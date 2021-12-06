@@ -19,20 +19,54 @@ const state = {
 }
 const imageContainer = document.querySelector('.image-container')
 
-function renderCardImage(){
+function getImages(){
+    return fetch('http://localhost:3000/images').then(function(resp){
+        return resp.json()
+    })
+}
+
+function getComments(){
+    return fetch('http://localhost:3000/comments').then(function(resp){
+        return resp.json()
+    })
+}
+
+getImages().then(function(images){
+    state.images = images;
+    renderCardImages()
+})
+
+function renderCardImages(){
     imageContainer.innerHTML = ''
 
     for(const image of state.images){
-        const cardTitle = document.querySelector('.title')
-        cardTitle.textContent = `${image.title}`
-        const cardImage = document.querySelector('.image')
-        cardImage.src = image.image
-        const cardLikesNumber = document.querySelector('.likes')
-        cardLikesNumber.textContent = image.likes
-        const cardUlEl = document.querySelector('.comments')
-        getComments()
-        renderCardComments(cardUlEl, image.id)
-        imageContainer.append(cardTitle, cardImage, cardLikesNumber, cardUlEl)
+        const card = document.createElement("article");
+		card.setAttribute("class", "image-card");
+		const cardTitle = document.createElement("h2");
+		cardTitle.setAttribute("class", "title");
+		cardTitle.textContent = image.title;
+		const cardImg = document.createElement("img");
+		cardImg.setAttribute("class", "image");
+        cardImg.src = image.image;
+		const cardLikesSection = document.createElement("div");
+		cardLikesSection.setAttribute("class", "likes-section");
+		const numberOfLikes = document.createElement("span");
+		numberOfLikes.setAttribute("class", "likes");
+		numberOfLikes.textContent = image.likes;
+		const likeButton = document.createElement("button");
+		likeButton.setAttribute("class", "like-button");
+		likeButton.innerText = "♥";
+		cardLikesSection.append(numberOfLikes, likeButton);
+
+        const cardUlEl = document.createElement("ul");
+		cardUlEl.setAttribute("class", "comments");
+		getComments().then(function(comments){
+			state.comments = comments;
+			renderCardComments(cardUlEl, image.id);
+		});
+
+		card.append(cardTitle, cardImg, cardLikesSection, cardUlEl);
+		imageContainer.append(card);
     }
 }
 
@@ -46,29 +80,3 @@ function renderCardComments(cardUlEl, targetId){
         cardUlEl.append(cardLiEl)
     }
 }
-
-function getImages(){
-    fetch('http://localhost:3000/images').then(function(resp){
-        return resp.json()
-    }).then(function(images){
-         state.images = images})
-}
-
-function getComments(){
-    fetch('http://localhost:3000/comments').then(function(resp){
-        return resp.json()
-    }).then(function(comments){
-         state.comments = comments})
-}
-
-function pushToState(){
-    getImages()
-    getComments()
-}
-
-function renderCard(){
-    renderCardImage()
-    renderCardComments()
-}
-
-renderCard()
